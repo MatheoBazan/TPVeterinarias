@@ -1,0 +1,49 @@
+schema: spec-driven
+
+# Project context — shown to AI when creating artifacts.
+context: |
+  Proyecto: API "Veterinaria", trabajo práctico de Programación III (UTN, Tecnicatura Universitaria
+  en Programación, unidades 1 a 4). Equipo: Matheo Bazan, Lautaro Mejias, Uriel Vega.
+  Fuente de verdad: docs/MiniTP_Cap1a4_Consigna.pdf, destilada en knowledge-base/ (01..11).
+  Ante conflicto entre la KB y el PDF, manda el PDF. Roadmap y responsables: CHANGES.md.
+  Reglas duras del proyecto: AGENTS.md / CLAUDE.md (sección "Reglas Duras").
+
+  Stack (mínimos del PDF): Python >=3.12, FastAPI >=0.111 (todos los handlers async def),
+  SQLModel >=0.0.24, SQLAlchemy 2.0 asincrónico, asyncpg >=0.30, PostgreSQL 16 (Docker postgres:16),
+  python-dotenv >=1.0, uvicorn (fastapi[standard]). Tests: pytest + httpx (ASGITransport) con TDD
+  estricto en tests/, contra PostgreSQL real (veterinaria_test). Entregable de la cátedra: archivos
+  .http (+ .sql del caso C-08) en test/.
+
+  Estructura obligatoria: app/main.py, app/core/config.py, app/core/database.py,
+  app/modules/<módulo>/{models,schemas,service,router}.py, reiniciar.py, test/.
+  Módulos: health, duenios (+FichaDuenio), mascotas, practicas, turnos (+TurnoPractica), laboratorio.
+  Fuera de alcance: auth, repositorios/Unit of Work, colas, Alembic (esquema con create_all).
+
+  Códigos: RN-01..RN-09 = reglas de negocio de la consigna; "caso C-NN de la consigna" = casos de
+  prueba C-01..C-09; C-NN en CHANGES.md = ID de change; PA-NN = preguntas abiertas (KB 10).
+
+# Per-artifact rules.
+rules:
+  proposal:
+    - Citar el ejercicio de la consigna (Ej. 1..6) y su peso en la evaluación, y las RN-XX y casos C-XX que cubre el change
+    - Listar las preguntas abiertas PA-XX de knowledge-base/10_preguntas_abiertas.md que el change resuelve
+    - Respetar exactamente los nombres de tablas, columnas, rutas y códigos HTTP de la consigna
+  design:
+    - Toda decisión que el PDF no fija (ON DELETE no especificado, formato de un cuerpo, etc.) va como decisión numerada con alternativas y justificación
+    - No contradecir las reglas duras de AGENTS.md (async sin bloqueos, base como garante, lecturas eager, DTO separados, extra='forbid')
+  specs:
+    - Escenarios GIVEN/WHEN/THEN con el código HTTP y el cuerpo esperados, trazables a RN-XX y casos C-XX
+  tasks:
+    - Ordenar las tareas en ciclos TDD (test en rojo → código mínimo → triangular → refactor)
+    - Incluir siempre las tareas de tests pytest en tests/ y de casos .http en test/ del change
+
+# Per-operation guidance.
+operations:
+  apply:
+    guidance:
+      - TDD estricto contra PostgreSQL real (docker compose up -d); nunca SQLite ni mocks de la sesión
+      - No modificar app/modules/laboratorio/cliente.py
+  archive:
+    guidance:
+      - Archivar sólo con pytest en verde y los .http del change escritos
+      - Marcar el estado del change en CHANGES.md

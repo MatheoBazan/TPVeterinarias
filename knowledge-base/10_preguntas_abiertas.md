@@ -1,0 +1,36 @@
+# Preguntas Abiertas
+
+## Inconsistencias detectadas
+
+### IN-01 — Cantidad de endpoints (RESUELTA, no es inconsistencia del PDF)
+El PDF lista **17** filas en "Endpoints de referencia" (2 health, 6 duenios, 3 mascotas, 2 practicas, 3 turnos, 1 laboratorio). Un brief interno decía 15 por error de conteo. **Resolución**: la fuente es el PDF → 17.
+
+### IN-02 — Códigos `RN-01` / `C-01` (RESUELTA, no es inconsistencia del PDF)
+El PDF escribe `RN‑01` y `C‑01` con un guion no separable (U+2011) que la extracción de texto pierde; en las páginas renderizadas el guion se ve. **Resolución**: la KB usa `RN-01..RN-09` y `C-01..C-09`, igual que el PDF.
+
+### IN-03 — "La mascota puede cambiar de dueño" sin endpoint
+**PDF (contexto)**: la mascota puede cambiar de dueño. **Endpoints**: no hay PATCH/PUT de mascota. **Impacto**: requisito de negocio sin superficie en la API. **Resolución**: no implementar (no inventar requisitos); confirmar con la cátedra.
+
+### IN-04 — "Si después cambia el precio del catálogo" sin endpoint de edición
+**PDF**: el precio del catálogo puede cambiar; **endpoints**: solo POST/GET de prácticas. C-08 lo hace por SQL directo. **Resolución**: no agregar PATCH de práctica; probar el congelado con SQL directo en un test.
+
+### IN-05 — Texto extraído del PDF con glitches
+Los textos extraídos muestran `= 0` en lugar de `>= 0` (CHECK `total >= 0`), tablas desordenadas y paréntesis perdidos; la tabla de endpoints y la de reglas salen desordenadas. Se reconstruyeron con las imágenes/contexto; sin impacto en la KB. Nota: la tabla de modelo de dominio no indica ON DELETE para `ficha_duenio`, `turno.mascota_id` ni `turno_practica.practica_id` (ver PA-02).
+
+## Preguntas abiertas (priorizadas)
+
+| ID | Prioridad | Pregunta | Bloquea | Decisor |
+|----|-----------|----------|---------|---------|
+| PA-01 | Alta | Cómo distinguir sin pre-chequeo una violación de FK sobre un recurso de la ruta (`POST /duenios/{id}/ficha` con dueño inexistente → 404) de una de UNIQUE (→ 409). Propuesta: inspeccionar `sqlstate` (23503 FK / 23505 UNIQUE) y `constraint_name` del error de asyncpg (`e.orig.__cause__`) | Ficha, alta de mascota/turno | Equipo técnico |
+| PA-02 | Alta | ON DELETE no especificado: `ficha_duenio.duenio_id` (propuesta CASCADE), `turno.mascota_id` (RESTRICT), `turno_practica.practica_id` (RESTRICT). ¿Se confirman? (DD-05/06/07) | Esquema (Ej. 3) | Equipo / cátedra |
+| PA-03 | Alta | Seed exacto que reproduce el ejemplo de Ej. 4 (mascota 1 Toby/perro, práctica 1 Consulta 15000, práctica 3 Vacuna antirrábica 12000, turno seed id 1). Nombres/precios de prácticas 2 y 4 y de dueños/mascotas restantes | `reiniciar.py` | Equipo |
+| PA-04 | Media | Compatibilidad de Python 3.14 con asyncpg ≥0.30, SQLModel 0.0.24 y pydantic (wheels/soporte). El PDF solo exige ≥3.12; ¿fijar versiones en `requirements.txt` o usar 3.12/3.13? | Instalación | Equipo |
+| PA-05 | Media | Valor de `pages` cuando `total = 0` (¿0 o 1?) y regla exacta de "página más allá de `pages`" con la primera página siempre válida. Propuesta: `pages = 0`, `page=1` responde con `items=[]`, `page>max(pages,1)` → 422 | Paginación | Equipo |
+| PA-06 | Media | Cuerpo exacto de `/health/ready` ("Estado de la base") y del 503 | Health | Equipo |
+| PA-07 | Media | Orden de ejecución y estado previo de los `.http` (C-05 borra el turno 1; C-06 crea el turno 2): ¿se exige `reiniciar.py` entre casos? | `test/` | Equipo |
+| PA-08 | Media | Forma de activar `echo=True` para C-07 (env var `SQL_ECHO` propuesta) sin dejarlo siempre encendido | Evidencia C-07 | Equipo |
+| PA-09 | Baja | `GET /duenios/{id}/mascotas` con dueño inexistente → 404: requiere leer el dueño (lectura, no escritura; compatible con la regla de no pre-chequear escrituras) | Ej. 2 | Equipo |
+| PA-10 | Baja | `fecha` sin zona horaria en el cuerpo: ¿422 o asumir UTC? | Contrato de turno | Equipo |
+| PA-11 | Baja | Formato del cuerpo de error 409/404 (`{"detail": ...}` por defecto de FastAPI) | Mensajes | Equipo |
+| PA-12 | Baja | Orden del listado de mascotas (propuesta: por `id`) | Paginación | Equipo |
+| PA-13 | Baja | ¿`mascota_id` inexistente en `POST /turnos/` → 409? (SU-02) | Turnos | Equipo |
