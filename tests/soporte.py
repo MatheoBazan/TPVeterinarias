@@ -1,4 +1,7 @@
 import asyncio
+import re
+from dataclasses import dataclass
+from pathlib import Path
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -71,3 +74,35 @@ def error_postgres(exc: DBAPIError) -> asyncpg.PostgresError:
     if not isinstance(original, asyncpg.PostgresError):
         pytest.fail(f"El error no viene de PostgreSQL: {exc!r}")
     return original
+
+
+@dataclass(frozen=True)
+class BloqueHttp:
+    titulo: str
+    metodo: str
+    url: str
+    cabeceras: dict[str, str]
+    cuerpo: bytes | None
+    codigo_esperado: int
+
+
+def bloques_http(ruta: Path) -> list[BloqueHttp]:
+    """Bloques `###` de un archivo `.http`: petición y primer código de `# Esperado:`."""
+    bloques: list[BloqueHttp] = []
+    for crudo in ruta.read_text(encoding="utf-8").split("\n### ")[1:]:
+        lineas = crudo.splitlines()
+        esperado = next(l for l in lineas if l.startswith("# Esperado:"))
+        codigo = int(re.search(r"\d{3}", esperado).group())
+        peticion = [l for l in lineas[1:] if not l.startswith("#")]
+        metodo, url = peticion[0].split(maxsplit=1)
+        cabeceras: dict[str, str] = {}
+        indice = 1
+        while indice < len(peticion) and peticion[indice].strip():
+            nombre, valor = peticion[indice].split(":", 1)
+            cabeceras[nombre.strip()] = valor.strip()
+            indice += 1
+        cuerpo = "\n".join(peticion[indice + 1 :]).strip()
+        bloques.append(
+            BloqueHttp(lineas[0].strip(), metodo, url.strip(), cabeceras, cuerpo.encode() or None, codigo)
+        )
+    return bloques

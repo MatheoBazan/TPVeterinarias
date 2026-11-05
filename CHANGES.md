@@ -174,7 +174,7 @@ El reparto entre Lautaro y Uriel de los changes restantes **no está decidido**;
 ## FASE 3 — Patrón de referencia y recursos (Ej. 2, 4, 5)
 
 ### [C-03] `duenios-fichas`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` archivado (2026-11-05)
 - **Responsable**: Matheo Bazan
 - **Ejercicio / peso**: Ej. 2 (Contratos y CRUD, 20 %) + Ej. 5 para el detalle del dueño (Lecturas sin N+1, 15 %)
 - **Scope**:
@@ -210,6 +210,7 @@ El reparto entre Lautaro y Uriel de los changes restantes **no está decidido**;
   - `GET /mascotas/` con envoltorio `{items, total, page, size, pages}`; `size` 20 por defecto, rango 1..100; página más allá de `pages` → 422; la primera página siempre responde
   - `GET /mascotas/{id}` con su dueño (`joinedload`)
   - Reutiliza el patrón de C-03; necesita `Duenio`
+  - `MascotaRead` ya existe en versión mínima en `app/modules/mascotas/schemas.py` (creada por C-03, D-11): extenderla, no recrearla
   - Resuelve **PA-05** (`pages` con `total = 0`, regla de página fuera de rango) y **PA-12** (orden por `id`)
   - `.http`: caso C-04 primera parte de la consigna (mascota con dueño inexistente → 409)
   - Tests: paginación (vacía, en el borde, fuera de rango, `size` inválido), 409 por FK, número fijo de consultas

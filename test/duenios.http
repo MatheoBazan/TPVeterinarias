@@ -1,0 +1,117 @@
+# Dueños y fichas (C-03). Correr de arriba abajo, UNA sola vez, justo despues de `python reiniciar.py`
+# (con uvicorn levantado: uvicorn app.main:app). Las peticiones marcadas [modifica] cambian el estado
+# y las siguientes dependen de ellas; para volver a correr el archivo hay que repetir `python reiniciar.py`.
+# Los POST rechazados (409/404) igual consumen un valor de la secuencia de ids: por eso los ids saltan.
+
+@base = http://localhost:8000
+
+### Caso C-01: id de ruta que no es entero (el handler no se ejecuta)
+# Esperado: 422 {"detail": [{"type": "int_parsing", "loc": ["path", "id"], ...}]}
+GET {{base}}/duenios/abc
+
+### Dueño con ficha
+# Esperado: 200 {"id": 1, "nombre": "Ana Gómez", "email": "ana.gomez@example.com", "ficha": {"id": 1, "duenio_id": 1, "telefono": "11 5555-0101", "direccion": "Calle Falsa 123"}}
+GET {{base}}/duenios/1
+
+### Dueño sin ficha
+# Esperado: 200 {"id": 2, "nombre": "Carlos Ruiz", "email": "carlos.ruiz@example.com", "ficha": null}
+GET {{base}}/duenios/2
+
+### Dueño inexistente
+# Esperado: 404 {"detail": "No existe el dueño"}
+GET {{base}}/duenios/999
+
+### Mascotas del dueño 1
+# Esperado: 200 [{"id": 1, "nombre": "Toby", "especie": "perro", "duenio_id": 1}, {"id": 2, "nombre": "Mishi", "especie": "gato", "duenio_id": 1}]
+GET {{base}}/duenios/1/mascotas
+
+### Mascotas de un dueño inexistente
+# Esperado: 404 {"detail": "No existe el dueño"}
+GET {{base}}/duenios/999/mascotas
+
+### [modifica] Alta de dueño
+# Esperado: 201 {"id": 3, "nombre": "Lucía Fernández", "email": "lucia.fernandez@example.com"}
+POST {{base}}/duenios/
+Content-Type: application/json
+
+{"nombre": "Lucía Fernández", "email": "lucia.fernandez@example.com"}
+
+### Mascotas de un dueño sin mascotas
+# Esperado: 200 []
+GET {{base}}/duenios/3/mascotas
+
+### Caso C-02 (email): alta con email repetido
+# Esperado: 409 {"detail": "Ya existe un dueño con ese email"}  (consume el id 4 de la secuencia)
+POST {{base}}/duenios/
+Content-Type: application/json
+
+{"nombre": "Otra Ana", "email": "ana.gomez@example.com"}
+
+### Alta con un campo no declarado
+# Esperado: 422 error "extra_forbidden" en ["body", "id"]
+POST {{base}}/duenios/
+Content-Type: application/json
+
+{"id": 7, "nombre": "Lucía", "email": "lucia@example.com"}
+
+### [modifica] Edición parcial: sólo el nombre
+# Esperado: 200 {"id": 3, "nombre": "Lucía F.", "email": "lucia.fernandez@example.com", "ficha": null}
+PATCH {{base}}/duenios/3
+Content-Type: application/json
+
+{"nombre": "Lucía F."}
+
+### Edición con el email de otro dueño
+# Esperado: 409 {"detail": "Ya existe un dueño con ese email"}
+PATCH {{base}}/duenios/3
+Content-Type: application/json
+
+{"email": "ana.gomez@example.com"}
+
+### Edición con null
+# Esperado: 422 error en ["body", "nombre"]
+PATCH {{base}}/duenios/3
+Content-Type: application/json
+
+{"nombre": null}
+
+### [modifica] Alta de la ficha del dueño 3
+# Esperado: 201 {"id": 2, "duenio_id": 3, "telefono": "11 5555-0303", "direccion": "Calle Nueva 456"}
+POST {{base}}/duenios/3/ficha
+Content-Type: application/json
+
+{"telefono": "11 5555-0303", "direccion": "Calle Nueva 456"}
+
+### Caso C-03: segunda ficha para el mismo dueño
+# Esperado: 409 {"detail": "El dueño ya tiene una ficha"}
+POST {{base}}/duenios/1/ficha
+Content-Type: application/json
+
+{"telefono": "11 5555-9999", "direccion": "Otra dirección 1"}
+
+### Ficha de un dueño inexistente
+# Esperado: 404 {"detail": "No existe el dueño"}
+POST {{base}}/duenios/999/ficha
+Content-Type: application/json
+
+{"telefono": "11 5555-0999", "direccion": "Calle 999"}
+
+### Caso C-05 (primera parte): borrar un dueño con mascotas
+# Esperado: 409 {"detail": "No se puede borrar el dueño: tiene mascotas a su nombre"}
+DELETE {{base}}/duenios/1
+
+### El 409 anterior no borró nada
+# Esperado: 200 igual que el GET /duenios/1 de arriba (Ana Gómez con su ficha 1)
+GET {{base}}/duenios/1
+
+### [modifica] Borrar un dueño sin mascotas (su ficha 2 cae por CASCADE)
+# Esperado: 204 sin cuerpo
+DELETE {{base}}/duenios/3
+
+### El dueño borrado ya no existe
+# Esperado: 404 {"detail": "No existe el dueño"}
+GET {{base}}/duenios/3
+
+### Borrar otra vez el mismo dueño
+# Esperado: 404 {"detail": "No existe el dueño"}
+DELETE {{base}}/duenios/3

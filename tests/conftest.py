@@ -95,3 +95,19 @@ async def base_con_seed(esquema_vacio: AsyncEngine) -> AsyncEngine:
     async with crear_fabrica_sesiones(esquema_vacio)() as s:
         await cargar_datos_iniciales(s)
     return esquema_vacio
+
+
+@pytest.fixture
+def sentencias_app(app: FastAPI) -> Iterator[list[str]]:
+    """Sentencias SQL que el motor de la aplicación envía a la base (hay que `.clear()` antes de medir)."""
+    capturadas: list[str] = []
+
+    def al_ejecutar(conn, cursor, statement, parameters, context, executemany):
+        capturadas.append(statement)
+
+    motor = app.state.engine.sync_engine
+    event.listen(motor, "before_cursor_execute", al_ejecutar)
+    try:
+        yield capturadas
+    finally:
+        event.remove(motor, "before_cursor_execute", al_ejecutar)
