@@ -39,7 +39,7 @@
 **Decisión**: índices explícitos en `mascota.duenio_id`, `turno.mascota_id`, `turno_practica.practica_id`; ninguno propio en `turno_practica.turno_id` (es la columna izquierda de la PK compuesta); `ficha_duenio.duenio_id` ya tiene índice por UNIQUE. Explicación obligatoria en el README.
 
 ### DD-13 — Relaciones y borrado en cascada delegado a la base
-**Decisión**: `back_populates` en ambos extremos; `Duenio.ficha` con `uselist=False`; `Turno.practicas` con `passive_deletes=True` (la base borra con ON DELETE CASCADE, RN-09).
+**Decisión**: `back_populates` en ambos extremos; `Duenio.ficha` con `uselist=False`; los cinco lados "uno" (`Turno.practicas`, `Duenio.ficha`, `Duenio.mascotas`, `Mascota.turnos`, `Practica.turnos`) con `passive_deletes="all"` y sin `cascade_delete` (la base decide: CASCADE o RESTRICT). Antes decía `passive_deletes=True`; se cambió a `"all"` porque con `True` el ORM igual emite `UPDATE ... SET NULL`/`DELETE` sobre las hijas que están cargadas en la sesión (ver D-7 de `openspec/changes/modelos-esquema-seed/design.md`).
 
 ### DD-14 — Carga anticipada, nunca perezosa
 **Decisión**: `joinedload` para a-uno, `selectinload` para colecciones, en la misma consulta; número fijo de consultas; evidencia C-07 con `echo=True` (bandera por env var para activarlo).

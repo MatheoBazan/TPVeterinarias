@@ -23,7 +23,7 @@ Equipo: Matheo Bazan, Lautaro Mejias, Uriel Vega.
 2. Configuración: copiá `env.example` a `.env` y reemplazá `<usuario>` y `<clave>` en las tres líneas que los usan.
    El `.env` no se versiona. Si la clave tiene `@`, `:`, `/` o `#`, codificala en URL o elegí otra.
 3. Base de datos: `docker compose up -d` (esperá a que quede sana con `docker compose ps`).
-4. Esquema y datos de ejemplo: `python reiniciar.py` — disponible desde C-02 `modelos-esquema-seed`.
+4. Esquema y datos de ejemplo: `python reiniciar.py`: borra y recrea las seis tablas de la base de `DATABASE_URL` y carga los datos iniciales (2 dueños, 3 mascotas, 4 prácticas, 1 turno); se puede repetir las veces que haga falta. Para el caso C-08 (el CHECK de `practica.precio`), ejecutá después `test/c08_check_precio.sql` siguiendo los comentarios del propio archivo.
 5. Servidor: `uvicorn app.main:app --reload` (o `fastapi dev app/main.py`). Documentación en `http://localhost:8000/docs`.
 6. Tests: `pytest` (necesita la base levantada; `pytest -m "not integracion"` corre sólo los que no la usan).
 
@@ -60,7 +60,7 @@ Con `SQL_ECHO=1` en el `.env` (o en la sesión de la terminal) y `uvicorn app.ma
 
 ## Índice de `turno_practica.turno_id`
 
-Se completa en C-02 (`modelos-esquema-seed`).
+`turno_practica.turno_id` no lleva índice propio porque es la primera columna de la clave primaria compuesta `(turno_id, practica_id)`: el índice B-tree de esa clave ya sirve las búsquedas, los joins y el borrado en cascada por `turno_id`. `practica_id`, en segunda posición, no puede usarlo, y por eso tiene el suyo (`ix_turno_practica_practica_id`).
 
 ## Evidencia del caso C-07
 

@@ -147,7 +147,7 @@ El reparto entre Lautaro y Uriel de los changes restantes **no está decidido**;
 > Parte del 30 % que más pesa en la nota y de la que todos dependen: revisión cruzada obligatoria del equipo antes de archivar.
 
 ### [C-02] `modelos-esquema-seed`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` archivado (2026-11-05)
 - **Responsable**: Matheo Bazan
 - **Ejercicio / peso**: Ej. 3 — Modelos, restricciones y relaciones (30 %)
 - **Scope**:

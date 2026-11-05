@@ -70,7 +70,7 @@ ProyectoVeterinaria/
 - Todos los handlers `async def`; ninguna llamada bloqueante en el bucle de eventos.
 - Dinero `Decimal` (`NUMERIC`), nunca `float`.
 - `fecha`: `TIMESTAMP WITH TIME ZONE`; salida en UTC con `Z`.
-- Cada relación con `back_populates` en ambos extremos; `Duenio.ficha` con `uselist=False`; `Turno.practicas` con `passive_deletes`.
+- Cada relación con `back_populates` en ambos extremos; `Duenio.ficha` con `uselist=False`; los cinco lados "uno" con `passive_deletes="all"` (no `True`: con hijas cargadas el ORM igual las tocaría; ver D-7 de `openspec/changes/modelos-esquema-seed/design.md`).
 - PATCH con `model_dump(exclude_unset=True)`.
 - Commits: Conventional Commits, sin líneas de co-autor de IA. Repo privado en GitHub.
 

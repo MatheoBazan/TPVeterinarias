@@ -83,3 +83,25 @@ def test_env_no_se_versiona():
     )
 
     assert resultado.returncode == 0
+
+
+def _seccion_readme(encabezado: str) -> str:
+    texto = (RAIZ_PROYECTO / "README.md").read_text(encoding="utf-8")
+    inicio = texto.index(f"## {encabezado}")
+    fin = texto.find("\n## ", inicio + 1)
+    return texto[inicio : fin if fin != -1 else None]
+
+
+def test_readme_explica_el_indice_de_turno_practica_por_la_clave_primaria_compuesta():
+    seccion = _seccion_readme("Índice de `turno_practica.turno_id`")
+
+    assert "(turno_id, practica_id)" in seccion
+    assert "clave primaria compuesta" in seccion
+    assert "practica_id" in seccion and "índice propio" in seccion
+
+
+def test_readme_no_dice_que_reiniciar_py_esta_pendiente():
+    texto = (RAIZ_PROYECTO / "README.md").read_text(encoding="utf-8")
+
+    assert "disponible desde C-02" not in texto
+    assert "borra y recrea" in texto

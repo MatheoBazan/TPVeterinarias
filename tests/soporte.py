@@ -2,11 +2,13 @@ import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
+import asyncpg
 import pytest
 from asgi_lifespan import LifespanManager
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.engine import make_url
+from sqlalchemy.exc import DBAPIError
 
 
 def validar_url_de_test(url: str | None) -> str:
@@ -61,3 +63,11 @@ async def abrir_servidor_mudo() -> tuple[asyncio.Server, set[asyncio.StreamWrite
 
     servidor = await asyncio.start_server(manejador, "127.0.0.1", 0)
     return servidor, escritores
+
+
+def error_postgres(exc: DBAPIError) -> asyncpg.PostgresError:
+    """Excepción original de asyncpg (con `sqlstate` y `constraint_name`) de un error del ORM."""
+    original = exc.orig.__cause__ if exc.orig is not None else None
+    if not isinstance(original, asyncpg.PostgresError):
+        pytest.fail(f"El error no viene de PostgreSQL: {exc!r}")
+    return original

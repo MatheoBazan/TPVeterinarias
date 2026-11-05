@@ -101,7 +101,7 @@ PostgreSQL **no crea solo** el índice de una clave foránea (sec. 4.10), por es
 
 - Cada relación se declara en **ambos extremos** con `Relationship(back_populates=...)`.
 - `Duenio.ficha` devuelve un **objeto** (`uselist=False`), no una lista.
-- `Turno.practicas` (hacia `TurnoPractica`) se declara con **`passive_deletes`** para que el ORM no intente vaciar ni borrar esas filas: lo hace la base con ON DELETE CASCADE (RN-09).
+- `Turno.practicas` (hacia `TurnoPractica`) se declara con **`passive_deletes="all"`** (igual que los otros cuatro lados "uno") para que el ORM no intente vaciar ni borrar esas filas, estén o no cargadas: lo hace la base con ON DELETE CASCADE (RN-09). `"all"` y no `True`: ver D-7 de `openspec/changes/modelos-esquema-seed/design.md`.
 
 ## Seed data inicial (`reiniciar.py`)
 
