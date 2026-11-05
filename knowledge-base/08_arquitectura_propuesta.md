@@ -34,6 +34,8 @@ ProyectoVeterinaria/
 ├── test/                       # ENTREGABLE de la cátedra: .http (+ .sql de C-08)
 ├── tests/                      # pytest + httpx del equipo (TDD estricto)
 ├── docker-compose.yml          # postgres:16 (dev) [+ veterinaria_test]
+├── docker/initdb/              # 01-crear-base-test.sql (crea veterinaria_test)
+├── pytest.ini                  # asyncio_mode=auto, marker integracion
 ├── env.example                 # forma de DATABASE_URL, sin secretos
 ├── .env                        # NO versionado
 ├── requirements.txt
@@ -56,9 +58,12 @@ ProyectoVeterinaria/
 
 | Variable | Descripción | Ejemplo | Sensible |
 |----------|-------------|---------|----------|
-| `DATABASE_URL` | Conexión async a la base de desarrollo | `postgresql+asyncpg://usuario:clave@localhost:5432/veterinaria` | Sí (en `.env`; `env.example` con placeholders) |
-| `TEST_DATABASE_URL` | Base separada para pytest (**decisión del equipo**) | `postgresql+asyncpg://usuario:clave@localhost:5432/veterinaria_test` | Sí |
-| `SQL_ECHO` (opcional, **Suposición**) | Activa `echo=True` del motor para la evidencia C-07 | `1` | No |
+| `DATABASE_URL` | Conexión async a la base de desarrollo | `postgresql+asyncpg://<usuario>:<clave>@localhost:5433/veterinaria` | Sí (en `.env`; `env.example` con placeholders) |
+| `TEST_DATABASE_URL` | Base separada para pytest (**decisión del equipo**) | `postgresql+asyncpg://<usuario>:<clave>@localhost:5433/veterinaria_test` | Sí |
+| `SQL_ECHO` (opcional, confirmada, PA-08) | `1` o `true` activa `echo=True` del motor para la evidencia C-07; apagada por defecto | `1` | No |
+| `POSTGRES_USER` / `POSTGRES_PASSWORD` | Usuario y clave del contenedor `postgres:16` (las lee `docker-compose.yml`, sin valores por defecto) | `<usuario>` / `<clave>` | Sí |
+| `POSTGRES_DB` | Base de desarrollo del contenedor | `veterinaria` | No |
+| `POSTGRES_PORT` | Puerto del host (5433 por defecto: el 5432 suele estar ocupado por un PostgreSQL local) | `5433` | No |
 
 ## Convenciones de código
 

@@ -31,13 +31,13 @@ Pre-digested rules per skill. Delegators copy matching blocks into sub-agent pro
 - No `...` (Ellipsis) as default for required params/fields; no `RootModel`.
 - Declare a return type or `response_model` on every endpoint (filters/serializes output); never return table models when a public DTO exists.
 - APIRouter owns prefix/tags/dependencies; `include_router` plain. Don't use ORJSONResponse/UJSONResponse (deprecated).
-- Run with `fastapi dev` / `fastapi run`; entrypoint in `pyproject.toml` `[tool.fastapi]`.
+- Run with `fastapi dev app/main.py` or `uvicorn app.main:app --reload` (the consigna names uvicorn; document the command in the README). A `pyproject.toml` is optional, not required.
 - Ignore SSE streaming, `app.frontend()`, OpenTelemetry sections: not relevant.
 - PROJECT OVERRIDES: engine + session factory are created in the `lifespan` and stored in `app.state`; `get_session` via `Depends` with `expire_on_commit=False`. NO repositories / Unit of Work layer. NO auth/security dependencies. Schema via `SQLModel.metadata.create_all` (no Alembic). Pre-checks "already exists?" are forbidden: write, catch IntegrityError, rollback, return 409.
 
 ### sqlmodel
 - Import from `sqlmodel` (Field, Relationship, SQLModel, select). Table models: `class X(XBase, table=True)`; DTOs are separate non-table classes: Base / Create / Update (all-optional; `model_dump(exclude_unset=True)` + `sqlmodel_update`) / Public. Never mix request/response-only fields into table models.
-- Build rows with `Model.model_validate(create_dto)`. Datetimes: plain `datetime` with aware UTC values (`datetime.now(UTC)`); do not set `DateTime(timezone=True)` manually.
+- Build rows with `Model.model_validate(create_dto)`. Datetimes: aware values only. PROJECT OVERRIDE: `turno.fecha` MUST be `TIMESTAMP WITH TIME ZONE` (consigna) → set `sa_type=DateTime(timezone=True)` explicitly (SQLModel's default maps `datetime` to TIMESTAMP WITHOUT TIME ZONE).
 - Relationships via `Relationship(back_populates=...)`; link tables with extra fields are full table models. Keep table models in one module or use `TYPE_CHECKING` + string annotations.
 - `ondelete="SET NULL"` needs a nullable FK; cascades via `cascade_delete=True` + `ondelete`.
 - Call `create_all` only after all table models are imported.

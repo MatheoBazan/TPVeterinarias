@@ -24,11 +24,11 @@ Los textos extraídos muestran `= 0` en lugar de `>= 0` (CHECK `total >= 0`), ta
 | PA-01 | Alta | Cómo distinguir sin pre-chequeo una violación de FK sobre un recurso de la ruta (`POST /duenios/{id}/ficha` con dueño inexistente → 404) de una de UNIQUE (→ 409). Propuesta: inspeccionar `sqlstate` (23503 FK / 23505 UNIQUE) y `constraint_name` del error de asyncpg (`e.orig.__cause__`) | Ficha, alta de mascota/turno | Equipo técnico |
 | PA-02 | Alta | ON DELETE no especificado: `ficha_duenio.duenio_id` (propuesta CASCADE), `turno.mascota_id` (RESTRICT), `turno_practica.practica_id` (RESTRICT). ¿Se confirman? (DD-05/06/07) | Esquema (Ej. 3) | Equipo / cátedra |
 | PA-03 | Alta | Seed exacto que reproduce el ejemplo de Ej. 4 (mascota 1 Toby/perro, práctica 1 Consulta 15000, práctica 3 Vacuna antirrábica 12000, turno seed id 1). Nombres/precios de prácticas 2 y 4 y de dueños/mascotas restantes | `reiniciar.py` | Equipo |
-| PA-04 | Media | Compatibilidad de Python 3.14 con asyncpg ≥0.30, SQLModel 0.0.24 y pydantic (wheels/soporte). El PDF solo exige ≥3.12; ¿fijar versiones en `requirements.txt` o usar 3.12/3.13? | Instalación | Equipo |
+| PA-04 | Media | Compatibilidad de Python 3.14 con asyncpg ≥0.30, SQLModel 0.0.24 y pydantic (wheels/soporte). El PDF solo exige ≥3.12; ¿fijar versiones en `requirements.txt` o usar 3.12/3.13? | Instalación | Equipo | **RESUELTA** en `openspec/changes/base-proyecto-conexion/design.md` (D-12).
 | PA-05 | Media | Valor de `pages` cuando `total = 0` (¿0 o 1?) y regla exacta de "página más allá de `pages`" con la primera página siempre válida. Propuesta: `pages = 0`, `page=1` responde con `items=[]`, `page>max(pages,1)` → 422 | Paginación | Equipo |
-| PA-06 | Media | Cuerpo exacto de `/health/ready` ("Estado de la base") y del 503 | Health | Equipo |
+| PA-06 | Media | Cuerpo exacto de `/health/ready` ("Estado de la base") y del 503 | Health | Equipo | **RESUELTA** en `openspec/changes/base-proyecto-conexion/design.md` (D-9 y D-10).
 | PA-07 | Media | Orden de ejecución y estado previo de los `.http` (C-05 borra el turno 1; C-06 crea el turno 2): ¿se exige `reiniciar.py` entre casos? | `test/` | Equipo |
-| PA-08 | Media | Forma de activar `echo=True` para C-07 (env var `SQL_ECHO` propuesta) sin dejarlo siempre encendido | Evidencia C-07 | Equipo |
+| PA-08 | Media | Forma de activar `echo=True` para C-07 (env var `SQL_ECHO` propuesta) sin dejarlo siempre encendido | Evidencia C-07 | Equipo | **RESUELTA** en `openspec/changes/base-proyecto-conexion/design.md` (D-4).
 | PA-09 | Baja | `GET /duenios/{id}/mascotas` con dueño inexistente → 404: requiere leer el dueño (lectura, no escritura; compatible con la regla de no pre-chequear escrituras) | Ej. 2 | Equipo |
 | PA-10 | Baja | `fecha` sin zona horaria en el cuerpo: ¿422 o asumir UTC? | Contrato de turno | Equipo |
 | PA-11 | Baja | Formato del cuerpo de error 409/404 (`{"detail": ...}` por defecto de FastAPI) | Mensajes | Equipo |

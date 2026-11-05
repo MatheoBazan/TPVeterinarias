@@ -1,0 +1,13 @@
+@base = http://localhost:8000
+
+### Liveness: el servicio atiende, sin tocar la base
+# Esperado: 200 {"estado": "vivo"}
+GET {{base}}/health/live
+
+### Readiness con la base levantada (SELECT 1)
+# Esperado: 200 {"estado": "listo"}
+GET {{base}}/health/ready
+
+### Readiness con la base detenida (antes: docker compose stop db; despues: docker compose start db)
+# Esperado: 503 {"estado": "sin base"} en menos de ~2 segundos
+GET {{base}}/health/ready

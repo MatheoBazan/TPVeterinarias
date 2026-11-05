@@ -117,7 +117,7 @@ El reparto entre Lautaro y Uriel de los changes restantes **no está decidido**;
 ## FASE 1 — Fundación (Ej. 1, 10 %)
 
 ### [C-01] `base-proyecto-conexion`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` archivado (2026-11-05)
 - **Responsable**: Matheo Bazan
 - **Ejercicio / peso**: Ej. 1 — Proyecto, conexión y ciclo de vida (10 %)
 - **Scope**:
@@ -268,6 +268,7 @@ El reparto entre Lautaro y Uriel de los changes restantes **no está decidido**;
 - **Ejercicio / peso**: Ej. 6 — Asincronía sin bloqueos (10 %)
 - **Scope**:
   - `app/modules/laboratorio/cliente.py` **exactamente como lo entrega la cátedra (sin modificar)**
+  - Misma estructura que todos los módulos (decisión D-8 de C-01): `models.py` con sólo un docstring (no hay tablas), `schemas.py`, `service.py`, `router.py`
   - `GET /laboratorio/stock/{vacuna}` que llama a la biblioteca sincrónica **fuera del bucle de eventos** (threadpool: `run_in_threadpool` / `asyncio.to_thread`)
   - Test que demuestra que `/health/live` responde de inmediato mientras hay 3 llamadas al laboratorio en vuelo
   - `.http`: caso C-09 de la consigna
