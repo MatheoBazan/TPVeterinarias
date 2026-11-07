@@ -8,6 +8,8 @@ from app.core.config import cargar_configuracion
 from app.core.database import crear_fabrica_sesiones, crear_motor
 from app.modules.duenios.router import router as duenios_router
 from app.modules.health.router import router as health_router
+from app.modules.mascotas.router import router as mascotas_router
+from app.modules.practicas.router import router as practicas_router
 
 
 @asynccontextmanager
@@ -26,6 +28,8 @@ def crear_app() -> FastAPI:
     aplicacion = FastAPI(title="Veterinaria", lifespan=lifespan)
     aplicacion.include_router(health_router)
     aplicacion.include_router(duenios_router)
+    aplicacion.include_router(mascotas_router)
+    aplicacion.include_router(practicas_router)
     return aplicacion
 
 

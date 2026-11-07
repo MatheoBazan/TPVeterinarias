@@ -1,0 +1,76 @@
+# Catálogo de prácticas (C-05). Correr de arriba abajo, UNA sola vez, justo despues de `python reiniciar.py`
+# (con uvicorn levantado: uvicorn app.main:app). Las peticiones marcadas [modifica] cambian el estado
+# y las siguientes dependen de ellas; para volver a correr el archivo hay que repetir `python reiniciar.py`.
+# Los POST rechazados (409) igual consumen un valor de la secuencia de ids: por eso Control es el id 7 y no el 6.
+#
+# Caso C-08 (el CHECK de la base rechaza un precio no positivo): antes de la última petición, ejecutar
+# test/c08_check_precio.sql directo en la base, con el contenedor levantado (docker compose up -d):
+#   docker compose cp test/c08_check_precio.sql db:/tmp/c08_check_precio.sql
+#   docker compose exec db psql -U <usuario> -d veterinaria -f /tmp/c08_check_precio.sql
+# (<usuario> es POSTGRES_USER del .env). Esperado: ERROR ... violates check constraint "ck_practica_precio_positivo"
+# (SQLSTATE 23514) y la práctica 1 conserva su precio 15000.00. Si se corre antes de las altas de arriba no cambia nada,
+# porque el UPDATE se rechaza y no modifica filas.
+
+@base = http://localhost:8000
+
+### Catálogo inicial
+# Esperado: 200 con las 4 prácticas del seed: [{"id": 1, "nombre": "Consulta", "precio": "15000.00"}, {"id": 2, "nombre": "Desparasitación", "precio": "8000.00"}, {"id": 3, "nombre": "Vacuna antirrábica", "precio": "12000.00"}, {"id": 4, "nombre": "Vacuna quíntuple", "precio": "14000.00"}]
+GET {{base}}/practicas/
+
+### [modifica] Alta de práctica
+# Esperado: 201 {"id": 5, "nombre": "Castración", "precio": "30000.00"}
+POST {{base}}/practicas/
+Content-Type: application/json
+
+{"nombre": "Castración", "precio": "30000.00"}
+
+### Caso C-02: alta con nombre de práctica repetido
+# Esperado: 409 {"detail": "Ya existe una práctica con ese nombre"}  (consume el id 6 de la secuencia)
+POST {{base}}/practicas/
+Content-Type: application/json
+
+{"nombre": "Consulta", "precio": "20000.00"}
+
+### Precio cero (RN-04)
+# Esperado: 422 error "greater_than" en ["body", "precio"]
+POST {{base}}/practicas/
+Content-Type: application/json
+
+{"nombre": "Gratis", "precio": "0"}
+
+### Precio negativo (RN-04)
+# Esperado: 422 error "greater_than" en ["body", "precio"]
+POST {{base}}/practicas/
+Content-Type: application/json
+
+{"nombre": "Negativa", "precio": "-100.00"}
+
+### Precio con más de 2 decimales
+# Esperado: 422 error "decimal_max_places" en ["body", "precio"]
+POST {{base}}/practicas/
+Content-Type: application/json
+
+{"nombre": "Fracción", "precio": "12.345"}
+
+### Alta con un campo no declarado
+# Esperado: 422 error "extra_forbidden" en ["body", "id"]
+POST {{base}}/practicas/
+Content-Type: application/json
+
+{"id": 9, "nombre": "Con id", "precio": "100.00"}
+
+### [modifica] Alta con precio como número JSON
+# Esperado: 201 {"id": 7, "nombre": "Control", "precio": "9000.00"}  (número JSON devuelto como string con 2 decimales)
+POST {{base}}/practicas/
+Content-Type: application/json
+
+{"nombre": "Control", "precio": 9000}
+
+### Catálogo después de las altas
+# Esperado: 200 con 6 prácticas: las 4 del seed, Castración (id 5) y Control (id 7)
+GET {{base}}/practicas/
+
+### Caso C-08 (verificación): el precio no cambió después del UPDATE directo
+# Esperado: 200; la práctica 1 Consulta sigue en "precio": "15000.00" (el CHECK ck_practica_precio_positivo rechazó el UPDATE)
+# Antes de esta petición, correr test/c08_check_precio.sql (ver las notas del caso C-08 arriba).
+GET {{base}}/practicas/

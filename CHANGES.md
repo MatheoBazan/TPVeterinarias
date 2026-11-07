@@ -202,8 +202,8 @@ El reparto entre Lautaro y Uriel de los changes restantes **no está decidido**;
   - `knowledge-base/10_preguntas_abiertas.md` §PA-01, PA-09, PA-11
 
 ### [C-04] `mascotas-paginacion`
-- **Estado**: `[ ]` pendiente
-- **Responsable**: Lautaro Mejias / Uriel Vega — a repartir entre ellos
+- **Estado**: `[x]` archivado (2026-11-06)
+- **Responsable**: Lautaro Mejias
 - **Ejercicio / peso**: Ej. 2 + Ej. 4 + Ej. 5 (alta con relación, paginación, lectura sin N+1)
 - **Scope**:
   - `POST /mascotas/` (el `duenio_id` viaja como id; dueño inexistente → **409** por FK)
@@ -224,8 +224,8 @@ El reparto entre Lautaro y Uriel de los changes restantes **no está decidido**;
   - `knowledge-base/10_preguntas_abiertas.md` §PA-05, PA-12
 
 ### [C-05] `practicas-catalogo`
-- **Estado**: `[ ]` pendiente
-- **Responsable**: Lautaro Mejias / Uriel Vega — a repartir entre ellos
+- **Estado**: `[x]` archivado (2026-11-06)
+- **Responsable**: Lautaro Mejias
 - **Ejercicio / peso**: Ej. 2 (Contratos y CRUD, 20 %)
 - **Scope**:
   - `POST /practicas/` (`precio > 0` en el DTO con `Decimal` → 422; `nombre` UNIQUE → 409)

@@ -111,3 +111,10 @@ def sentencias_app(app: FastAPI) -> Iterator[list[str]]:
         yield capturadas
     finally:
         event.remove(motor, "before_cursor_execute", al_ejecutar)
+
+
+@pytest.fixture
+async def sesion_seed(base_con_seed: AsyncEngine) -> AsyncIterator[AsyncSession]:
+    """Sesión propia sobre la base con los datos iniciales (para sumar filas en un test)."""
+    async with crear_fabrica_sesiones(base_con_seed)() as s:
+        yield s

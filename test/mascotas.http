@@ -1,0 +1,67 @@
+# Mascotas (C-04): alta, detalle y listado paginado. Correr de arriba abajo, UNA sola vez, justo despues de
+# `python reiniciar.py` (con uvicorn levantado: uvicorn app.main:app). Las peticiones marcadas [modifica]
+# cambian el estado y las siguientes dependen de ellas; para volver a correr el archivo hay que repetir `python reiniciar.py`.
+# El POST rechazado (409) igual consume un valor de la secuencia de ids (el 5): por eso el id salta.
+
+@base = http://localhost:8000
+
+### Listado por defecto
+# Esperado: 200 {"items": [{"id": 1, "nombre": "Toby", "especie": "perro", "duenio_id": 1}, {"id": 2, "nombre": "Mishi", "especie": "gato", "duenio_id": 1}, {"id": 3, "nombre": "Luna", "especie": "perro", "duenio_id": 2}], "total": 3, "page": 1, "size": 20, "pages": 1}
+GET {{base}}/mascotas/
+
+### Ultima pagina incompleta
+# Esperado: 200 {"items": [{"id": 3, "nombre": "Luna", "especie": "perro", "duenio_id": 2}], "total": 3, "page": 2, "size": 2, "pages": 2}
+GET {{base}}/mascotas/?page=2&size=2
+
+### Pagina fuera de rango
+# Esperado: 422 {"detail": [{"type": "pagina_fuera_de_rango", "loc": ["query", "page"], "msg": "La página pedida no existe", "input": 3, "ctx": {"pages": 2}}]}
+GET {{base}}/mascotas/?page=3&size=2
+
+### Tamano 0
+# Esperado: 422 {"detail": [{"type": "greater_than_equal", "loc": ["query", "size"], ...}]}
+GET {{base}}/mascotas/?size=0
+
+### Tamano 101
+# Esperado: 422 {"detail": [{"type": "less_than_equal", "loc": ["query", "size"], ...}]}
+GET {{base}}/mascotas/?size=101
+
+### Pagina 0
+# Esperado: 422 {"detail": [{"type": "greater_than_equal", "loc": ["query", "page"], ...}]}
+GET {{base}}/mascotas/?page=0
+
+### Mascota con su dueño
+# Esperado: 200 {"id": 1, "nombre": "Toby", "especie": "perro", "duenio_id": 1, "duenio": {"id": 1, "nombre": "Ana Gómez", "email": "ana.gomez@example.com"}}
+GET {{base}}/mascotas/1
+
+### Mascota inexistente
+# Esperado: 404 {"detail": "No existe la mascota"}
+GET {{base}}/mascotas/999
+
+### Id que no es entero
+# Esperado: 422 {"detail": [{"type": "int_parsing", "loc": ["path", "id"], ...}]}
+GET {{base}}/mascotas/abc
+
+### [modifica] Alta de mascota
+# Esperado: 201 {"id": 4, "nombre": "Rocky", "especie": "perro", "duenio_id": 2}
+POST {{base}}/mascotas/
+Content-Type: application/json
+
+{"nombre": "Rocky", "especie": "perro", "duenio_id": 2}
+
+### Caso C-04 (primera parte): mascota con un dueño inexistente (consume el id 5)
+# Esperado: 409 {"detail": "No existe el dueño indicado"}
+POST {{base}}/mascotas/
+Content-Type: application/json
+
+{"nombre": "Fantasma", "especie": "gato", "duenio_id": 999}
+
+### Alta con un campo no declarado
+# Esperado: 422 {"detail": [{"type": "extra_forbidden", "loc": ["body", "id"], ...}]}
+POST {{base}}/mascotas/
+Content-Type: application/json
+
+{"id": 9, "nombre": "Rocky", "especie": "perro", "duenio_id": 1}
+
+### Listado con la mascota nueva
+# Esperado: 200 {"items": [{"id": 3, "nombre": "Luna", "especie": "perro", "duenio_id": 2}, {"id": 4, "nombre": "Rocky", "especie": "perro", "duenio_id": 2}], "total": 4, "page": 2, "size": 2, "pages": 2}
+GET {{base}}/mascotas/?page=2&size=2
