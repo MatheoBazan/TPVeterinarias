@@ -20,8 +20,8 @@
 | C-03 | `duenios-fichas` | Ej. 2 + Ej. 5 (detalle dueño) / parte de 20 % y 15 % | Matheo Bazan | C-02 | MEDIO |
 | C-04 | `mascotas-paginacion` | Ej. 2 + 4 + 5 / parte de 20 %, 15 %, 15 % | Lautaro Mejias / Uriel Vega — a repartir | C-03 | MEDIO |
 | C-05 | `practicas-catalogo` | Ej. 2 / parte de 20 % | Lautaro Mejias / Uriel Vega — a repartir | C-03 | BAJO |
-| C-06 | `turnos-composicion` | Ej. 4 + 5 / 15 % + parte de 15 % | Lautaro Mejias / Uriel Vega — a repartir | C-02, C-03 (recomendado antes: C-05) | MEDIO |
-| C-07 | `laboratorio-async` | Ej. 6 / 10 % | Lautaro Mejias / Uriel Vega — a repartir | C-01 | MEDIO |
+| C-06 | `turnos-composicion` | Ej. 4 + 5 / 15 % + parte de 15 % | Uriel Vega | C-02, C-03 (recomendado antes: C-05) | MEDIO |
+| C-07 | `laboratorio-async` | Ej. 6 / 10 % | Uriel Vega | C-01 | MEDIO |
 | C-08 | `entrega-final` | Entrega (checklist de los 6 criterios 10/20/30/15/15/10) | Compartido (los tres); coordina quien termine último | C-01..C-07 | BAJO |
 
 Criterios de evaluación (pesos): Proyecto/conexión/ciclo de vida 10 % · Contratos y CRUD 20 % · Modelos/restricciones/relaciones 30 % · Altas con relaciones 15 % · Lecturas sin N+1 15 % · Asincronía sin bloqueos 10 %.
@@ -241,8 +241,8 @@ El reparto entre Lautaro y Uriel de los changes restantes **no está decidido**;
   - `knowledge-base/04_modelo_de_datos.md` §practica
 
 ### [C-06] `turnos-composicion`
-- **Estado**: `[ ]` pendiente
-- **Responsable**: Lautaro Mejias / Uriel Vega — a repartir entre ellos
+- **Estado**: `[x]` archivado (2026-11-08)
+- **Responsable**: Uriel Vega
 - **Ejercicio / peso**: Ej. 4 (Altas con relaciones, 15 %) + Ej. 5 (Lecturas sin N+1, 15 %). El change más pesado.
 - **Scope**:
   - `POST /turnos/` con `practicas` anidadas (`min_length=1` → 422); el precio se copia del catálogo a `turno_practica.precio_unitario`; el total lo calcula el servidor (ni precio ni total viajan en el DTO)
@@ -264,8 +264,8 @@ El reparto entre Lautaro y Uriel de los changes restantes **no está decidido**;
   - `knowledge-base/10_preguntas_abiertas.md` §PA-08, PA-10, PA-13
 
 ### [C-07] `laboratorio-async`
-- **Estado**: `[ ]` pendiente
-- **Responsable**: Lautaro Mejias / Uriel Vega — a repartir entre ellos
+- **Estado**: `[x]` archivado (2026-11-08)
+- **Responsable**: Uriel Vega
 - **Ejercicio / peso**: Ej. 6 — Asincronía sin bloqueos (10 %)
 - **Scope**:
   - `app/modules/laboratorio/cliente.py` **exactamente como lo entrega la cátedra (sin modificar)**

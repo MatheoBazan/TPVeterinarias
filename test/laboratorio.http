@@ -1,0 +1,29 @@
+# Laboratorio (C-07). No toca la base: se puede correr en cualquier momento con uvicorn levantado
+# (uvicorn app.main:app). Cada consulta de stock tarda un segundo (la biblioteca de la cátedra hace
+# time.sleep(1)), pero corre en un hilo aparte y no frena al servidor.
+#
+# Caso C-09 (tres consultas simultáneas y un GET /health/live): un cliente .http manda las peticiones
+# de a una, así que para lanzarlas a la vez usar Git Bash (127.0.0.1 y no localhost: en Windows
+# localhost suma ~0,2 s por conexión y ensucia la medición):
+#   for v in rabia moquillo parvovirus; do curl -s 127.0.0.1:8000/laboratorio/stock/$v & done; curl -s -w " live: %{time_total}s\n" 127.0.0.1:8000/health/live; wait
+# Esperado: {"estado":"vivo"} live: 0.00…s (milisegundos, lo mismo que sin consultas en curso) y después las
+# tres respuestas de stock, juntas, a ~1 s del inicio (no a 1, 2 y 3 s). Con REST Client también se ve:
+# enviar las tres primeras peticiones seguidas y la cuarta enseguida; el health responde antes que cualquier stock.
+
+@base = http://localhost:8000
+
+### Caso C-09: consulta de stock 1 de 3
+# Esperado: 200 {"vacuna": "rabia", "stock": 15}  (tarda ~1 s)
+GET {{base}}/laboratorio/stock/rabia
+
+### Caso C-09: consulta de stock 2 de 3
+# Esperado: 200 {"vacuna": "moquillo", "stock": 18}  (tarda ~1 s)
+GET {{base}}/laboratorio/stock/moquillo
+
+### Caso C-09: consulta de stock 3 de 3
+# Esperado: 200 {"vacuna": "parvovirus", "stock": 20}  (tarda ~1 s)
+GET {{base}}/laboratorio/stock/parvovirus
+
+### Caso C-09: el de salud responde de inmediato aunque haya consultas al laboratorio en marcha
+# Esperado: 200 {"estado": "vivo"}  (en centésimas de segundo)
+GET {{base}}/health/live
