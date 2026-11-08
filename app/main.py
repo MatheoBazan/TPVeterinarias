@@ -10,6 +10,7 @@ from app.modules.duenios.router import router as duenios_router
 from app.modules.health.router import router as health_router
 from app.modules.mascotas.router import router as mascotas_router
 from app.modules.practicas.router import router as practicas_router
+from app.modules.turnos.router import router as turnos_router
 
 
 @asynccontextmanager
@@ -30,6 +31,7 @@ def crear_app() -> FastAPI:
     aplicacion.include_router(duenios_router)
     aplicacion.include_router(mascotas_router)
     aplicacion.include_router(practicas_router)
+    aplicacion.include_router(turnos_router)
     return aplicacion
 
 

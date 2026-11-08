@@ -1,0 +1,81 @@
+# Turnos (C-06). Correr de arriba abajo, UNA sola vez, justo despues de `python reiniciar.py`
+# (con uvicorn levantado: uvicorn app.main:app). Las peticiones marcadas [modifica] cambian el estado
+# y las siguientes dependen de ellas; para volver a correr el archivo hay que repetir `python reiniciar.py`.
+# El caso C-06 va primero: un alta rechazada también consume un valor de la secuencia de ids de turno.
+#
+# Evidencia del caso C-07 (lecturas sin N+1): poner SQL_ECHO=1 en el .env, levantar uvicorn y pedir
+# GET /turnos/3 (una práctica) y GET /turnos/4 (tres prácticas). En la consola se ven exactamente dos
+# SELECT por petición, con una y con tres prácticas: el primero trae el turno con su mascota
+# (FROM turno LEFT OUTER JOIN mascota) y el segundo sus prácticas con el nombre del catálogo
+# (FROM turno_practica LEFT OUTER JOIN practica ... WHERE turno_practica.turno_id IN (...)).
+
+@base = http://localhost:8000
+
+### [modifica] Caso C-06: turno con dos prácticas (el ejemplo de la consigna)
+# Esperado: 201 {"id": 2, "fecha": "2026-11-12T13:30:00Z", "motivo": "Control anual", "total": "27000.00", "mascota": {"id": 1, "nombre": "Toby", "especie": "perro"}, "practicas": [{"practica_id": 1, "nombre": "Consulta", "precio_unitario": "15000.00"}, {"practica_id": 3, "nombre": "Vacuna antirrábica", "precio_unitario": "12000.00"}]}
+POST {{base}}/turnos/
+Content-Type: application/json
+
+{"mascota_id": 1, "fecha": "2026-11-12T10:30:00-03:00", "motivo": "Control anual", "practicas": [{"practica_id": 1}, {"practica_id": 3}]}
+
+### [modifica] Turno con una práctica (para el caso C-07)
+# Esperado: 201 {"id": 3, "fecha": "2026-11-13T12:00:00Z", "motivo": "Vacunación", "total": "14000.00", "mascota": {"id": 3, "nombre": "Luna", "especie": "perro"}, "practicas": [{"practica_id": 4, "nombre": "Vacuna quíntuple", "precio_unitario": "14000.00"}]}
+POST {{base}}/turnos/
+Content-Type: application/json
+
+{"mascota_id": 3, "fecha": "2026-11-13T09:00:00-03:00", "motivo": "Vacunación", "practicas": [{"practica_id": 4}]}
+
+### [modifica] Turno con tres prácticas (para el caso C-07)
+# Esperado: 201 {"id": 4, "fecha": "2026-11-14T15:00:00Z", "motivo": "Chequeo completo", "total": "35000.00", "mascota": {"id": 2, "nombre": "Mishi", "especie": "gato"}, "practicas": [{"practica_id": 1, "nombre": "Consulta", "precio_unitario": "15000.00"}, {"practica_id": 2, "nombre": "Desparasitación", "precio_unitario": "8000.00"}, {"practica_id": 3, "nombre": "Vacuna antirrábica", "precio_unitario": "12000.00"}]}
+POST {{base}}/turnos/
+Content-Type: application/json
+
+{"mascota_id": 2, "fecha": "2026-11-14T15:00:00Z", "motivo": "Chequeo completo", "practicas": [{"practica_id": 3}, {"practica_id": 1}, {"practica_id": 2}]}
+
+### Caso C-07: detalle de un turno con una práctica
+# Esperado: 200 con el mismo cuerpo que el alta del turno 3 (con SQL_ECHO=1: dos SELECT en consola)
+GET {{base}}/turnos/3
+
+### Caso C-07: detalle de un turno con tres prácticas
+# Esperado: 200 con el mismo cuerpo que el alta del turno 4 (con SQL_ECHO=1: los mismos dos SELECT)
+GET {{base}}/turnos/4
+
+### Caso C-04 (segunda parte): turno con una práctica inexistente
+# Esperado: 409 {"detail": "No existe la práctica indicada"}  (no queda guardado nada; consume el id 5)
+POST {{base}}/turnos/
+Content-Type: application/json
+
+{"mascota_id": 1, "fecha": "2026-11-15T10:00:00-03:00", "motivo": "Control", "practicas": [{"practica_id": 1}, {"practica_id": 999}]}
+
+### Caso C-04 (segunda parte): el turno rechazado no quedó guardado
+# Esperado: 404 {"detail": "No existe el turno"}
+GET {{base}}/turnos/5
+
+### Práctica repetida en el mismo turno (RN-07)
+# Esperado: 409 {"detail": "Una práctica no puede repetirse en el mismo turno"}
+POST {{base}}/turnos/
+Content-Type: application/json
+
+{"mascota_id": 1, "fecha": "2026-11-15T10:00:00-03:00", "motivo": "Control", "practicas": [{"practica_id": 1}, {"practica_id": 1}]}
+
+### Turno sin prácticas (RN-05)
+# Esperado: 422 con un error en ["body", "practicas"]
+POST {{base}}/turnos/
+Content-Type: application/json
+
+{"mascota_id": 1, "fecha": "2026-11-15T10:00:00-03:00", "motivo": "Control", "practicas": []}
+
+### Fecha sin zona horaria
+# Esperado: 422 con un error en ["body", "fecha"]
+POST {{base}}/turnos/
+Content-Type: application/json
+
+{"mascota_id": 1, "fecha": "2026-11-15T10:00:00", "motivo": "Control", "practicas": [{"practica_id": 1}]}
+
+### [modifica] Caso C-05 (segunda parte): borrar un turno borra sus prácticas
+# Esperado: 204 sin cuerpo (la base borra sus filas de turno_practica por ON DELETE CASCADE)
+DELETE {{base}}/turnos/1
+
+### Caso C-05 (segunda parte): el turno borrado ya no está
+# Esperado: 404 {"detail": "No existe el turno"}
+GET {{base}}/turnos/1
